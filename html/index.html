@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Salesforce Headless Identity PoC</title>
+        <link rel="stylesheet" href="/styles.css">
+    </head>
+    <body>
+        <div class="hidden" id="login">
+            <h1>Login</h1>
+            <label for="username">Username </label><input type="text" name="username" id="username" value="john.doe@example.com">
+            <label for="password">Password </label><input type="text" name="password" id="password" value="Salesforce1">
+            <input type="submit" value="Login" id="loginBtn">
+        </div>
+        <pre class="hidden" id="userinfo">
+        </pre>
+    </body>
+    <script>
+        let userinfo;
+        const clientId = "3MVG9llQY5kM9T6c3RJGu_YW5T2DPDTW.deA_4eJ_QNeWCq.dEshNxF6FMeNseWgP7Ov.UJEjcNIOn39w5.dv";
+        const baseUrl = "https://saas-innovation-8452-dev-ed.scratch.my.site.com";
+        const redirectURL = `${baseUrl}/services/apexrest/code/extraction`;
+
+        const $ = id => document.querySelector(`#${id}`);
+        const hide = id => {
+            const elem = $(id);
+            elem.classList.remove("visible");
+            elem.classList.add("hidden");
+        }
+        const show = id => {
+            const elem = $(id);
+            elem.classList.remove("hidden");
+            elem.classList.add("visible");
+        }
+        if (userinfo) {
+            show("userinfo");
+        } else {
+            show("login");
+            $("loginBtn").addEventListener("click", async ev => {
+                ev.preventDefault = true;
+                const u = $("username").value;
+                const p = $("password").value;
+
+                // authenticate user
+                const codeResp = await fetch(`${baseUrl}/services/oauth2/authorize`, {
+                    headers: {
+                        "Auth-Request-Type": "Named-User",
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    method: "post",
+                    body: `response_type=code_credentials&client_id=${clientId}&redirect_uri=${redirectURL}&username=${u}&password=${p}`
+                })
+                const codeBody = await codeResp.json();
+                console.log("codeBody", codeBody);
+                
+                // exchange code for access_token
+                const tokenResp = await fetch(`${codeBody.sfdc_community_url}/services/oauth2/token`, {
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    method: "post",
+                    body: `code=${codeBody.code}&grant_type=authorization_code&client_id=${clientId}&redirect_uri=${redirectURL}`
+                })
+                const tokenBody = await tokenResp.json();
+                console.log("tokenBody", tokenBody);
+
+                // get access_token
+                const access_token = tokenBody.access_token;
+
+                // get userinfo
+                const userinfoResp = await fetch(`${codeBody.sfdc_community_url}/services/oauth2/userinfo`, {
+                    headers: {
+                        "Accept": "application/json",
+                        "Authorization": `Bearer ${access_token}`
+                    }
+                });
+                userinfo = await userinfoResp.json();
+
+                // show
+                $("userinfo").innerText = JSON.stringify(userinfo, undefined, 2);
+                hide("login");
+                show("userinfo");
+            })
+        }
+
+
+    </script>
+</html>
