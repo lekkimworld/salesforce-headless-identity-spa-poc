@@ -5,7 +5,7 @@
       "default": true
     }
   ],
-  "name": "salesforce-headless-identity-poc",
+  "name": "salesforce-headless-identity-spa-poc",
   "namespace": "",
   "sfdcLoginUrl": "https://login.salesforce.com",
   "sourceApiVersion": "60.0"
