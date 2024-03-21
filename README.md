@@ -37,7 +37,10 @@ sf project deploy start \
 ROLE_ID=`sf data query --query "select Id from UserRole where Name='Dummy'" --json | jq ".result.records[0].Id" -r`
 
 # update user to set role
-sf data update record -s User -w "Name='User User'" -v "LanguageLocaleKey=en_US TimeZoneSidKey=Europe/Paris LocaleSidKey=da UserPreferencesUserDebugModePref=true UserPreferencesApexPagesDeveloperMode=true UserPermissionsInteractionUser=true UserPermissionsKnowledgeUser=true UserRoleId=$ROLE_ID"
+sf data update record -s User -w "Name='User User'" -v "LanguageLocaleKey=en_US \
+  TimeZoneSidKey=Europe/Paris LocaleSidKey=da UserPreferencesUserDebugModePref=true \
+  UserPreferencesApexPagesDeveloperMode=true UserPermissionsInteractionUser=true \
+  UserPermissionsKnowledgeUser=true UserRoleId=$ROLE_ID"
 ```
 
 Now use the Salesforce CLI to get the Experience Cloud site url for the `Login Experience` site
